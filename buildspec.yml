@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+    commands:
+      - tf_version=$TERRAFORM_VERSION
+      - wget https://releases.hashicorp.com/terraform/"$TERRAFORM_VERSION"/terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+      - unzip terraform_"$TERRAFORM_VERSION"_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+  build:
+    commands:
+      - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - terraform --version
+      - terraform init -input=false -backend-config="region=eu-west-1" -backend-config="bucket=surya-tt-terraform-states" -backend-config="key=aws-codepipeline.tfstate"
+      - terraform validate
+      - terraform plan -input=false -var-file eu-west-1.tfvars -out=tfplan
+      - terraform apply -input=false tfplan
+     
